@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProphetEst - Real Estate Analytics, Listing & Contact Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            200: '#bae0fd',
+                            300: '#7cc8fb',
+                            400: '#36a9f7',
+                            500: '#0c8de9',
+                            600: '#006ec7',
+                            700: '#0058a3',
+                            800: '#054b85',
+                            900: '#0a3f6f',
+                            950: '#072849',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom range slider styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #e0effe;
+            border-radius: 4px;
+            border: 1px solid #bae0fd;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #006ec7;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -6px;
+            box-shadow: 0 2px 5px rgba(0,88,163,0.3);
+            transition: transform 0.1s ease, background 0.1s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: #0058a3;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f0f7ff;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #bae0fd;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #006ec7;
+        }
+        .view-section {
+            display: none;
+        }
+        .view-section.active-view {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-navy-50 text-navy-950 font-sans min-h-screen flex flex-col antialiased">
+
+    <!-- Header / Navigation -->
+    <header class="bg-navy-900 text-white shadow-md sticky top-0 z-50 border-b border-navy-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Brand Logo & Title -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('dashboard')">
+                    <div class="bg-white text-navy-900 p-2 rounded-lg font-bold shadow-sm">
+                        <i class="fa-solid fa-house-signal text-navy-700 text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h1 class="font-bold text-lg leading-tight tracking-wide">ProphetEst Analytics</h1>
+                            <span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-mono px-2 py-0.5 rounded border border-emerald-500/30 flex items-center">
+                                <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1 animate-pulse"></span> PKL File Linked
+                            </span>
+                        </div>
+                        <p class="text-xs text-navy-200">Real Estate Valuation &amp; Management Portal</p>
+                    </div>
+                </div>
+
+                <!-- Page View Router Links -->
+                <nav class="hidden md:flex items-center space-x-1 font-medium text-xs">
+                    <button id="nav-dashboard" onclick="switchView('dashboard')" class="px-3 py-2 rounded-lg transition flex items-center space-x-1.5 bg-navy-800 text-white border border-navy-700">
+                        <i class="fa-solid fa-chart-line text-navy-300"></i>
+                        <span>Analytics Engine</span>
+                    </button>
+                    <button id="nav-listing" onclick="switchView('listing')" class="px-3 py-2 rounded-lg transition flex items-center space-x-1.5 text-navy-200 hover:text-white hover:bg-navy-800/60">
+                        <i class="fa-solid fa-square-plus text-navy-300"></i>
+                        <span>Property Listing Form</span>
+                    </button>
+                    <button id="nav-contact" onclick="switchView('contact')" class="px-3 py-2 rounded-lg transition flex items-center space-x-1.5 text-navy-200 hover:text-white hover:bg-navy-800/60">
+                        <i class="fa-solid fa-headset text-navy-300"></i>
+                        <span>Contact &amp; Support</span>
+                    </button>
+                </nav>
+
+                <!-- Actions Header -->
+                <div class="hidden lg:flex items-center space-x-2">
+                    <button onclick="triggerFileSelect()" class="text-xs bg-navy-800 hover:bg-navy-700 text-navy-100 py-1.5 px-3 rounded border border-navy-700 transition flex items-center">
+                        <i class="fa-solid fa-upload mr-1.5 text-navy-300"></i> PKL
+                    </button>
+                    <button onclick="openModelModal()" class="text-xs bg-navy-800 hover:bg-navy-700 text-navy-100 py-1.5 px-3 rounded border border-navy-700 transition flex items-center">
+                        <i class="fa-solid fa-microchip mr-1.5 text-navy-300"></i> Inspector
+                    </button>
+                    <button onclick="exportValuationReport()" class="text-xs bg-white text-navy-900 hover:bg-navy-100 font-semibold py-1.5 px-3 rounded shadow transition flex items-center">
+                        <i class="fa-solid fa-download mr-1.5"></i> Export
+                    </button>
+                </div>
+
+                <!-- Hidden File Input for uploading .pkl / .joblib -->
+                <input type="file" id="pklFileInput" accept=".pkl,.joblib,.bin,.json" class="hidden" onchange="handleFileUpload(event)">
+                
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobileMenuBtn" class="text-navy-100 hover:text-white p-2">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile menu dropdown -->
+        <div id="mobileMenu" class="hidden md:hidden bg-navy-950 border-t border-navy-800 px-4 py-3 space-y-2">
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="switchView('dashboard')" class="text-xs bg-navy-800 text-white py-2 px-2 rounded text-center border border-navy-700 font-medium">
+                    <i class="fa-solid fa-chart-line block mb-1"></i> Dashboard
+                </button>
+                <button onclick="switchView('listing')" class="text-xs bg-navy-800 text-white py-2 px-2 rounded text-center border border-navy-700 font-medium">
+                    <i class="fa-solid fa-square-plus block mb-1"></i> Add Listing
+                </button>
+                <button onclick="switchView('contact')" class="text-xs bg-navy-800 text-white py-2 px-2 rounded text-center border border-navy-700 font-medium">
+                    <i class="fa-solid fa-headset block mb-1"></i> Contact Us
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Attached File Ribbon -->
+    <div class="bg-navy-800 text-navy-100 text-xs py-2 px-4 border-b border-navy-700">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <div class="flex items-center space-x-2 font-mono">
+                <i class="fa-solid fa-paperclip text-navy-300"></i>
+                <span>Active Model: <strong class="text-white" id="ribbonModelName">linear_regression_model.pkl</strong></span>
+                <span class="text-navy-400">|</span>
+                <span>Engine: <strong class="text-navy-200">Scikit-Learn v1.6.1</strong></span>
+            </div>
+            <div class="flex items-center space-x-3 text-[11px]">
+                <span class="text-navy-300 font-mono">Status: <strong class="text-emerald-400">Active &amp; Linked</strong></span>
+                <button onclick="openModelModal()" class="text-navy-200 underline hover:text-white transition">Inspect Equation Coefficients</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN PAGE CONTAINER (VIEWS) -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ================================================================= -->
+        <!-- VIEW 1: ANALYTICS DASHBOARD PAGE                                  -->
+        <!-- ================================================================= -->
+        <section id="view-dashboard" class="view-section active-view space-y-6">
+
+            <!-- Top Banner / Summary KPI Matrix -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                
+                <!-- Output Highlight KPI Card: SalePrice [ ] -->
+                <div class="md:col-span-2 bg-gradient-to-br from-navy-900 via-navy-800 to-navy-950 rounded-xl p-6 text-white shadow-lg border border-navy-700 relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 text-navy-800/30 text-9xl pointer-events-none">
+                        <i class="fa-solid fa-calculator"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs uppercase tracking-wider font-semibold text-navy-200">Model Predicted Valuation</p>
+                                <h2 class="text-xs text-navy-300 mt-0.5">Scikit-Learn LinearRegression Output</h2>
+                            </div>
+                            <span class="bg-navy-700/80 text-navy-100 text-xs px-2.5 py-1 rounded-full border border-navy-500/40 flex items-center font-mono">
+                                <i class="fa-solid fa-check-double mr-1.5 text-emerald-400"></i> SalePrice [ ]
+                            </span>
+                        </div>
+
+                        <div class="mt-4 flex items-baseline space-x-3">
+                            <div class="text-4xl sm:text-5xl font-black text-white tracking-tight font-mono" id="salePriceVal">
+                                $248,500
+                            </div>
+                            <div class="text-sm font-semibold text-navy-200">
+                                USD / EST. MARKET VALUE
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-navy-700/60 flex items-center justify-between text-xs text-navy-200 flex-wrap gap-2">
+                            <span id="marketBenchmark" class="flex items-center text-navy-100 font-medium">
+                                <i class="fa-solid fa-arrow-up-right-dots mr-1 text-navy-300"></i> +6.4% above neighborhood median
+                            </span>
+                            <button onclick="transferToListingForm()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1 rounded text-xs transition flex items-center shadow">
+                                <i class="fa-solid fa-plus-circle mr-1"></i> List This Property
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary KPI: Price per Sq Ft -->
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-navy-200 flex flex-col justify-between hover:shadow-md transition">
+                    <div>
+                        <div class="flex justify-between items-start text-navy-600 mb-2">
+                            <span class="text-xs font-bold uppercase tracking-wide text-navy-800">Price / Lot Area Ratio</span>
+                            <i class="fa-solid fa-ruler-combined text-navy-600 bg-navy-50 p-2 rounded-lg"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-navy-950 font-mono" id="pricePerSqFtVal">$23.55 / sqft</div>
+                        <p class="text-xs text-navy-600 mt-1">Calculated from total LotArea</p>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-navy-100 text-xs text-navy-700 flex justify-between">
+                        <span>Quality Score Index:</span>
+                        <strong id="qualityScoreVal" class="text-navy-900 font-mono">6.4 / 10</strong>
+                    </div>
+                </div>
+
+                <!-- Tertiary KPI: Model Evaluation Formula -->
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-navy-200 flex flex-col justify-between hover:shadow-md transition">
+                    <div>
+                        <div class="flex justify-between items-start text-navy-600 mb-2">
+                            <span class="text-xs font-bold uppercase tracking-wide text-navy-800">Formula Intercept</span>
+                            <i class="fa-solid fa-square-root-variable text-navy-600 bg-navy-50 p-2 rounded-lg"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-navy-950 font-mono" id="interceptVal">-$95,241</div>
+                        <p class="text-xs text-navy-600 mt-1">Model Intercept $\beta_0$</p>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-navy-100 text-xs text-navy-700 flex justify-between">
+                        <span>Feature Count:</span>
+                        <strong class="text-navy-800 font-semibold" id="featureCountVal">5 Inputs Matched</strong>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Workspace Grid: Controls & Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                <!-- Left Panel: Input Features -->
+                <div class="lg:col-span-5 space-y-6">
+                    
+                    <div class="bg-white rounded-xl shadow-sm border border-navy-200 overflow-hidden">
+                        <div class="bg-navy-900 px-5 py-4 text-white flex justify-between items-center">
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-sliders text-navy-300"></i>
+                                <h2 class="font-bold text-sm tracking-wide uppercase">Property Input Features</h2>
+                            </div>
+                            <span class="text-xs bg-emerald-900/80 text-emerald-200 px-2 py-0.5 rounded border border-emerald-700 font-mono flex items-center">
+                                <i class="fa-solid fa-link mr-1 text-[10px]"></i> Model Active
+                            </span>
+                        </div>
+
+                        <form id="predictForm" onsubmit="event.preventDefault();" class="p-5 space-y-5">
+
+                            <!-- Active Attached Model Info Box -->
+                            <div class="bg-navy-900 text-navy-100 text-xs p-3 rounded-lg border border-navy-700 space-y-2 font-mono">
+                                <div class="flex justify-between items-center text-navy-300 font-bold">
+                                    <span><i class="fa-solid fa-file-code mr-1"></i> Attached Pickle Model</span>
+                                    <span class="text-[10px] bg-navy-800 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-800">sklearn 1.6.1</span>
+                                </div>
+                                <div class="text-[11px] text-navy-200 grid grid-cols-2 gap-1.5 pt-1 border-t border-navy-800">
+                                    <div>Id Coef: <strong class="text-white" id="coef_id_lbl">-0.052</strong></div>
+                                    <div>MSSubClass Coef: <strong class="text-white" id="coef_subclass_lbl">-148.5</strong></div>
+                                    <div>LotArea Coef: <strong class="text-white" id="coef_lotarea_lbl">+2.84 / sqft</strong></div>
+                                    <div>OverallQual Coef: <strong class="text-white" id="coef_qual_lbl">+24,180</strong></div>
+                                    <div>OverallCond Coef: <strong class="text-white" id="coef_cond_lbl">+6,840</strong></div>
+                                    <div>Intercept: <strong class="text-white" id="intercept_lbl">-$95,241</strong></div>
+                                </div>
+                            </div>
+
+                            <!-- INPUT 1: Id [ ] -->
+                            <div class="space-y-1.5 p-3 rounded-lg hover:bg-navy-50/60 transition border border-transparent hover:border-navy-100">
+                                <div class="flex justify-between items-center">
+                                    <label for="property_id" class="text-xs font-bold text-navy-900 font-mono">
+                                        Id [ ]
+                                    </label>
+                                    <div class="flex items-center space-x-1">
+                                        <span class="text-xs text-navy-600 font-mono">REF#</span>
+                                        <input type="number" id="property_id" value="1054" min="1" max="5000"
+                                               oninput="calculatePrice()"
+                                               class="w-28 text-right font-bold text-sm text-navy-900 bg-white border border-navy-300 rounded px-2 py-0.5 focus:ring-1 focus:ring-navy-500 font-mono">
+                                    </div>
+                                </div>
+                                <p class="text-[11px] text-navy-600">Unique property record ID in dataset</p>
+                            </div>
+
+                            <!-- INPUT 2: MSSubClass [ ] -->
+                            <div class="space-y-1.5 p-3 rounded-lg hover:bg-navy-50/60 transition border border-transparent hover:border-navy-100">
+                                <div class="flex justify-between items-center">
+                                    <label for="mssubclass" class="text-xs font-bold text-navy-900 font-mono">
+                                        MSSubClass [ ]
+                                    </label>
+                                    <div class="flex items-center space-x-1">
+                                        <input type="number" id="mssubclass_num" min="20" max="190" step="5" value="60" 
+                                               oninput="syncInput('mssubclass', this.value)"
+                                               class="w-24 text-right font-bold text-sm text-navy-900 bg-white border border-navy-300 rounded px-2 py-0.5 focus:ring-1 focus:ring-navy-500 font-mono">
+                                    </div>
+                                </div>
+                                <select id="mssubclass" onchange="syncInput('mssubclass_num', this.value)" class="w-full bg-white border border-navy-300 text-navy-900 text-xs rounded p-1.5 focus:ring-1 focus:ring-navy-500 font-medium">
+                                    <option value="20">20 - 1-Story 1946 &amp; Newer All Styles</option>
+                                    <option value="30">30 - 1-Story 1945 &amp; Older</option>
+                                    <option value="40">40 - 1-Story w/Finished Attic All Ages</option>
+                                    <option value="50">50 - 1-1/2 Story Finished All Ages</option>
+                                    <option value="60" selected>60 - 2-Story 1946 &amp; Newer</option>
+                                    <option value="70">70 - 2-Story 1945 &amp; Older</option>
+                                    <option value="80">80 - Split or Multi-Level</option>
+                                    <option value="90">90 - Duplex - All Styles and Ages</option>
+                                    <option value="120">120 - 1-Story PUD (Planned Unit Dev)</option>
+                                    <option value="160">160 - 2-Story PUD - 1946 &amp; Newer</option>
+                                    <option value="190">190 - 2 Family Conversion All Styles</option>
+                                </select>
+                            </div>
+
+                            <!-- INPUT 3: LotArea [ ] -->
+                            <div class="space-y-1.5 p-3 rounded-lg hover:bg-navy-50/60 transition border border-transparent hover:border-navy-100">
+                                <div class="flex justify-between items-center">
+                                    <label for="lotarea" class="text-xs font-bold text-navy-900 font-mono">
+                                        LotArea [ ]
+                                    </label>
+                                    <div class="flex items-center space-x-1">
+                                        <input type="number" id="lotarea_num" min="1000" max="50000" step="100" value="10550" 
+                                               oninput="syncInput('lotarea', this.value)"
+                                               class="w-28 text-right font-bold text-sm text-navy-900 bg-white border border-navy-300 rounded px-2 py-0.5 focus:ring-1 focus:ring-navy-500 font-mono">
+                                        <span class="text-xs text-navy-600 font-medium">sq ft</span>
+                                    </div>
+                                </div>
+                                <input type="range" id="lotarea" min="1000" max="50000" step="100" value="10550" 
+                                       oninput="syncInput('lotarea_num', this.value)">
+                            </div>
+
+                            <!-- INPUT 4: OverallQual [ ] -->
+                            <div class="space-y-1.5 p-3 rounded-lg hover:bg-navy-50/60 transition border border-transparent hover:border-navy-100">
+                                <div class="flex justify-between items-center">
+                                    <label for="overallqual" class="text-xs font-bold text-navy-900 font-mono">
+                                        OverallQual [ ]
+                                    </label>
+                                    <div class="flex items-center space-x-1">
+                                        <input type="number" id="overallqual_num" min="1" max="10" value="7" 
+                                               oninput="syncInput('overallqual', this.value)"
+                                               class="w-16 text-right font-bold text-sm text-navy-900 bg-white border border-navy-300 rounded px-2 py-0.5 focus:ring-1 focus:ring-navy-500 font-mono">
+                                        <span class="text-xs text-navy-600 font-medium">/ 10</span>
+                                    </div>
+                                </div>
+                                <input type="range" id="overallqual" min="1" max="10" step="1" value="7" 
+                                       oninput="syncInput('overallqual_num', this.value)">
+                            </div>
+
+                            <!-- INPUT 5: OverallCond [ ] -->
+                            <div class="space-y-1.5 p-3 rounded-lg hover:bg-navy-50/60 transition border border-transparent hover:border-navy-100">
+                                <div class="flex justify-between items-center">
+                                    <label for="overallcond" class="text-xs font-bold text-navy-900 font-mono">
+                                        OverallCond [ ]
+                                    </label>
+                                    <div class="flex items-center space-x-1">
+                                        <input type="number" id="overallcond_num" min="1" max="10" value="5" 
+                                               oninput="syncInput('overallcond', this.value)"
+                                               class="w-16 text-right font-bold text-sm text-navy-900 bg-white border border-navy-300 rounded px-2 py-0.5 focus:ring-1 focus:ring-navy-500 font-mono">
+                                        <span class="text-xs text-navy-600 font-medium">/ 10</span>
+                                    </div>
+                                </div>
+                                <input type="range" id="overallcond" min="1" max="10" step="1" value="5" 
+                                       oninput="syncInput('overallcond_num', this.value)">
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="grid grid-cols-2 gap-2 pt-1">
+                                <button type="button" onclick="logScenario()" class="bg-navy-700 hover:bg-navy-800 text-white font-semibold py-2.5 px-3 rounded-lg text-xs shadow transition flex items-center justify-center space-x-1">
+                                    <i class="fa-solid fa-bookmark"></i>
+                                    <span>Log Valuation</span>
+                                </button>
+                                <button type="button" onclick="transferToListingForm()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-3 rounded-lg text-xs shadow transition flex items-center justify-center space-x-1">
+                                    <i class="fa-solid fa-square-plus"></i>
+                                    <span>Create Listing</span>
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+
+                    <!-- Logged Scenarios Table -->
+                    <div class="bg-white rounded-xl shadow-sm border border-navy-200 p-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-xs font-bold text-navy-900 uppercase tracking-wider flex items-center">
+                                <i class="fa-solid fa-list-check text-navy-600 mr-1.5"></i> Saved Predictions
+                            </h3>
+                            <button onclick="clearScenarios()" class="text-[10px] text-navy-600 hover:text-navy-900 underline">Clear All</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="border-b border-navy-100 text-navy-600 font-medium">
+                                        <th class="pb-2">Id</th>
+                                        <th class="pb-2">SubClass</th>
+                                        <th class="pb-2">LotArea</th>
+                                        <th class="pb-2">Qual/Cond</th>
+                                        <th class="pb-2 text-right">SalePrice</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scenarioTableBody" class="divide-y divide-navy-50 text-navy-900 font-mono">
+                                    <tr class="text-navy-400 italic text-[11px]">
+                                        <td colspan="5" class="py-3 text-center">No saved valuations yet. Click "Log Valuation" above.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right Panel: Analytics & Charts -->
+                <div class="lg:col-span-7 space-y-6">
+
+                    <!-- Dynamic Math Formula Breakdown Card -->
+                    <div class="bg-white rounded-xl shadow-sm border border-navy-200 p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-navy-900 text-xs tracking-wide uppercase flex items-center">
+                                <i class="fa-solid fa-square-root-variable text-navy-600 mr-2"></i>
+                                Scikit-Learn Matrix Calculation
+                            </h3>
+                            <span class="text-[10px] bg-navy-100 text-navy-800 px-2 py-0.5 rounded font-mono">Live Evaluation</span>
+                        </div>
+                        <div class="bg-navy-950 text-white rounded-lg p-4 font-mono text-xs overflow-x-auto space-y-2">
+                            <div class="text-navy-300 text-[11px] font-sans">
+                                $\text{SalePrice} = \beta_0 + (\beta_1 \cdot \text{Id}) + (\beta_2 \cdot \text{MSSubClass}) + (\beta_3 \cdot \text{LotArea}) + (\beta_4 \cdot \text{OverallQual}) + (\beta_5 \cdot \text{OverallCond})$
+                            </div>
+                            <div id="equationBreakdown" class="text-emerald-400 font-bold pt-1 border-t border-navy-800 leading-relaxed">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Chart: 5-Year Trajectory -->
+                    <div class="bg-white rounded-xl shadow-sm border border-navy-200 p-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                            <div>
+                                <h3 class="font-bold text-navy-900 text-sm tracking-wide flex items-center">
+                                    <i class="fa-solid fa-chart-line text-navy-600 mr-2"></i>
+                                    5-Year Projected Appreciation Curve
+                                </h3>
+                                <p class="text-xs text-navy-600">Linear regression baseline with projected market yield trajectory</p>
+                            </div>
+                        </div>
+                        <div class="h-64 w-full">
+                            <canvas id="projectionChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Visualizations Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <!-- Radar Chart -->
+                        <div class="bg-white rounded-xl shadow-sm border border-navy-200 p-5">
+                            <div class="mb-3">
+                                <h4 class="font-bold text-navy-900 text-xs tracking-wide uppercase flex items-center">
+                                    <i class="fa-solid fa-compass-drafting text-navy-600 mr-1.5"></i> Feature Weight Elasticity
+                                </h4>
+                                <p class="text-[11px] text-navy-600">Model coefficients relative scale</p>
+                            </div>
+                            <div class="h-48 w-full flex items-center justify-center">
+                                <canvas id="sensitivityChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Bar Chart -->
+                        <div class="bg-white rounded-xl shadow-sm border border-navy-200 p-5">
+                            <div class="mb-3">
+                                <h4 class="font-bold text-navy-900 text-xs tracking-wide uppercase flex items-center">
+                                    <i class="fa-solid fa-chart-bar text-navy-600 mr-1.5"></i> Feature Dollar Contributions
+                                </h4>
+                                <p class="text-[11px] text-navy-600">Nominal impact ($) on target SalePrice</p>
+                            </div>
+                            <div class="h-48 w-full flex items-center justify-center">
+                                <canvas id="contributionsChart"></canvas>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- VIEW 2: PROPERTY LISTING FORM PAGE                                -->
+        <!-- ================================================================= -->
+        <section id="view-listing" class="view-section space-y-6">
+
+            <!-- Header Title -->
+            <div class="bg-navy-900 rounded-xl p-6 text-white shadow-md border border-navy-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-emerald-500/20 text-emerald-300 text-xs font-mono px-2.5 py-0.5 rounded border border-emerald-500/30">
+                            <i class="fa-solid fa-bolt mr-1"></i> ML Auto-Benchmarking Enabled
+                        </span>
+                        <span class="text-xs text-navy-300">Property Manager Portal</span>
+                    </div>
+                    <h2 class="text-2xl font-black mt-1 tracking-tight">Create New Property Listing</h2>
+                    <p class="text-xs text-navy-200 mt-1">Submit property parameters directly linked with Scikit-Learn PKL valuation engine.</p>
+                </div>
+
+                <div class="bg-navy-800/80 p-3.5 rounded-lg border border-navy-700 font-mono text-xs flex items-center space-x-4">
+                    <div>
+                        <div class="text-navy-300 text-[10px]">CURRENT MODEL BENCHMARK</div>
+                        <div class="text-lg font-bold text-emerald-400" id="listingModelPriceDisplay">$248,500</div>
+                    </div>
+                    <button onclick="switchView('dashboard')" class="bg-navy-700 hover:bg-navy-600 text-white px-3 py-1.5 rounded transition text-xs font-sans">
+                        <i class="fa-solid fa-sliders mr-1"></i> Adjust ML Inputs
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Form Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-navy-200 overflow-hidden">
+                <form id="propertyListingForm" onsubmit="handleListingSubmit(event)" class="p-6 sm:p-8 space-y-8">
+
+                    <!-- SECTION 1: Basic Property Overview -->
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-bold text-navy-900 uppercase tracking-wider border-b border-navy-100 pb-2 flex items-center">
+                            <i class="fa-solid fa-house text-navy-600 mr-2"></i> 1. Property Identity &amp; Classification
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Title -->
+                            <div class="md:col-span-2">
+                                <label for="list_title" class="block text-xs font-bold text-navy-800 mb-1">Listing Title *</label>
+                                <input type="text" id="list_title" required
+                                       placeholder="e.g. Modern Two-Story Family Residence with Suburban Lawn"
+                                       class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 focus:bg-white focus:ring-2 focus:ring-navy-500 font-medium">
+                            </div>
+
+                            <!-- Listing Type -->
+                            <div>
+                                <label for="list_status" class="block text-xs font-bold text-navy-800 mb-1">Listing Status *</label>
+                                <select id="list_status" required class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 focus:bg-white focus:ring-2 focus:ring-navy-500 font-medium">
+                                    <option value="Active">Active - For Sale</option>
+                                    <option value="Pending">Pending Appraisal</option>
+                                    <option value="Featured">Featured Premium</option>
+                                    <option value="Coming Soon">Coming Soon</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <!-- Property Ref ID -->
+                            <div>
+                                <label for="list_id" class="block text-xs font-bold text-navy-800 mb-1">Dataset Ref Id [ ]</label>
+                                <input type="number" id="list_id" value="1054"
+                                       onchange="syncListingToModel('property_id', this.value)"
+                                       class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 font-mono focus:bg-white focus:ring-2 focus:ring-navy-500">
+                            </div>
+
+                            <!-- MSSubClass -->
+                            <div>
+                                <label for="list_mssubclass" class="block text-xs font-bold text-navy-800 mb-1">MSSubClass [ ]</label>
+                                <select id="list_mssubclass" onchange="syncListingToModel('mssubclass_num', this.value)" class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 font-medium focus:bg-white focus:ring-2 focus:ring-navy-500">
+                                    <option value="20">20 - 1-Story 1946 &amp; Newer</option>
+                                    <option value="30">30 - 1-Story Older</option>
+                                    <option value="50">50 - 1-1/2 Story Finished</option>
+                                    <option value="60" selected>60 - 2-Story 1946 &amp; Newer</option>
+                                    <option value="70">70 - 2-Story 1945 &amp; Older</option>
+                                    <option value="120">120 - 1-Story PUD</option>
+                                    <option value="160">160 - 2-Story PUD</option>
+                                </select>
+                            </div>
+
+                            <!-- Asking Price -->
+                            <div>
+                                <label for="list_asking_price" class="block text-xs font-bold text-navy-800 mb-1">Asking Price ($ USD) *</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2.5 text-xs font-bold text-navy-400">$</span>
+                                    <input type="number" id="list_asking_price" value="250000" step="1000" required
+                                           oninput="checkPriceVariance()"
+                                           class="w-full pl-7 bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 font-mono font-bold focus:bg-white focus:ring-2 focus:ring-navy-500">
+                                </div>
+                            </div>
+
+                            <!-- Price Benchmark Difference indicator -->
+                            <div class="flex flex-col justify-end">
+                                <div id="priceVarianceBadge" class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-2 rounded-lg text-[11px] font-medium flex items-center justify-between">
+                                    <span>Vs. Model:</span>
+                                    <strong class="font-mono text-xs">+0.6% Match</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- SECTION 2: Physical Specifications -->
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-bold text-navy-900 uppercase tracking-wider border-b border-navy-100 pb-2 flex items-center">
+                            <i class="fa-solid fa-ruler-combined text-navy-600 mr-2"></i> 2. Model Feature Vectors &amp; Attributes
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Lot Area -->
+                            <div>
+                                <label for="list_lotarea" class="block text-xs font-bold text-navy-800 mb-1">Lot Area (sq ft) [ ] *</label>
+                                <input type="number" id="list_lotarea" value="10550" required
+                                       oninput="syncListingToModel('lotarea', this.value)"
+                                       class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 font-mono focus:bg-white focus:ring-2 focus:ring-navy-500">
+                            </div>
+
+                            <!-- Overall Quality -->
+                            <div>
+                                <label for="list_overallqual" class="block text-xs font-bold text-navy-800 mb-1">Overall Quality (1-10) [ ] *</label>
+                                <select id="list_overallqual" onchange="syncListingToModel('overallqual', this.value)" class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 font-medium focus:bg-white focus:ring-2 focus:ring-navy-500">
+                                    <option value="1">1 - Very Poor</option>
+                                    <option value="3">3 - Fair</option>
+                                    <option value="5">5 - Average</option>
+                                    <option value="7" selected>7 - Good Quality</option>
+                                    <option value="8">8 - Very Good</option>
+                                    <option value="9">9 - Excellent</option>
+                                    <option value="10">10 - Very Excellent</option>
+                                </select>
+                            </div>
+
+                            <!-- Overall Condition -->
+                            <div>
+                                <label for="list_overallcond" class="block text-xs font-bold text-navy-800 mb-1">Overall Condition (1-10) [ ] *</label>
+                                <select id="list_overallcond" onchange="syncListingToModel('overallcond', this.value)" class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 font-medium focus:bg-white focus:ring-2 focus:ring-navy-500">
+                                    <option value="1">1 - Very Poor</option>
+                                    <option value="3">3 - Fair</option>
+                                    <option value="5" selected>5 - Average Condition</option>
+                                    <option value="7">7 - Good Condition</option>
+                                    <option value="9">9 - Excellent</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                            <div>
+                                <label for="list_beds" class="block text-xs font-bold text-navy-800 mb-1">Bedrooms</label>
+                                <input type="number" id="list_beds" value="4" min="1" max="10" class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2 text-xs text-navy-900 font-medium">
+                            </div>
+                            <div>
+                                <label for="list_baths" class="block text-xs font-bold text-navy-800 mb-1">Bathrooms</label>
+                                <input type="number" id="list_baths" value="2.5" min="1" step="0.5" max="10" class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2 text-xs text-navy-900 font-medium">
+                            </div>
+                            <div>
+                                <label for="list_year" class="block text-xs font-bold text-navy-800 mb-1">Year Built</label>
+                                <input type="number" id="list_year" value="2018" min="1800" max="2026" class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2 text-xs text-navy-900 font-medium">
+                            </div>
+                            <div>
+                                <label for="list_garage" class="block text-xs font-bold text-navy-800 mb-1">Garage Cars</label>
+                                <input type="number" id="list_garage" value="2" min="0" max="6" class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2 text-xs text-navy-900 font-medium">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- SECTION 3: Location & Description -->
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-bold text-navy-900 uppercase tracking-wider border-b border-navy-100 pb-2 flex items-center">
+                            <i class="fa-solid fa-map-location-dot text-navy-600 mr-2"></i> 3. Address &amp; Description
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="md:col-span-2">
+                                <label for="list_address" class="block text-xs font-bold text-navy-800 mb-1">Street Address *</label>
+                                <input type="text" id="list_address" required value="742 Evergreen Terrace, North Ames" class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 font-medium">
+                            </div>
+                            <div>
+                                <label for="list_neighborhood" class="block text-xs font-bold text-navy-800 mb-1">Neighborhood Sub-District</label>
+                                <select id="list_neighborhood" class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 font-medium">
+                                    <option value="North Ames">North Ames (NAmes)</option>
+                                    <option value="College Creek">College Creek (CollgCr)</option>
+                                    <option value="Old Town">Old Town (OldTown)</option>
+                                    <option value="Somerset">Somerset (Somerst)</option>
+                                    <option value="Edwards">Edwards (Edwards)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="list_desc" class="block text-xs font-bold text-navy-800 mb-1">Property Overview &amp; Key Features</label>
+                            <textarea id="list_desc" rows="3" class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 font-medium" placeholder="Describe architectural highlights, interior renovations, and neighborhood benefits..."></textarea>
+                        </div>
+
+                        <!-- Amenities Checkboxes -->
+                        <div>
+                            <label class="block text-xs font-bold text-navy-800 mb-2">Amenities &amp; Utility Upgrades</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                                <label class="flex items-center space-x-2 bg-navy-50 p-2 rounded border border-navy-100 cursor-pointer hover:bg-navy-100/60">
+                                    <input type="checkbox" checked class="rounded text-navy-600 focus:ring-navy-500">
+                                    <span>Central HVAC</span>
+                                </label>
+                                <label class="flex items-center space-x-2 bg-navy-50 p-2 rounded border border-navy-100 cursor-pointer hover:bg-navy-100/60">
+                                    <input type="checkbox" checked class="rounded text-navy-600 focus:ring-navy-500">
+                                    <span>Hardwood Floors</span>
+                                </label>
+                                <label class="flex items-center space-x-2 bg-navy-50 p-2 rounded border border-navy-100 cursor-pointer hover:bg-navy-100/60">
+                                    <input type="checkbox" class="rounded text-navy-600 focus:ring-navy-500">
+                                    <span>Solar Panels</span>
+                                </label>
+                                <label class="flex items-center space-x-2 bg-navy-50 p-2 rounded border border-navy-100 cursor-pointer hover:bg-navy-100/60">
+                                    <input type="checkbox" checked class="rounded text-navy-600 focus:ring-navy-500">
+                                    <span>Finished Basement</span>
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- SECTION 4: Media Simulator -->
+                    <div class="space-y-3">
+                        <h3 class="text-sm font-bold text-navy-900 uppercase tracking-wider border-b border-navy-100 pb-2 flex items-center">
+                            <i class="fa-solid fa-camera text-navy-600 mr-2"></i> 4. Media &amp; Photos Gallery
+                        </h3>
+                        <div class="border-2 border-dashed border-navy-300 bg-navy-50/40 hover:bg-navy-50 rounded-xl p-6 text-center cursor-pointer transition">
+                            <i class="fa-solid fa-images text-3xl text-navy-500 mb-2"></i>
+                            <p class="text-xs font-bold text-navy-900">Drag &amp; Drop Property Photos (Simulator)</p>
+                            <p class="text-[11px] text-navy-500 mt-0.5">Supports high-res JPG, PNG (Max 10MB)</p>
+                        </div>
+                    </div>
+
+                    <!-- Submit & Actions -->
+                    <div class="pt-4 border-t border-navy-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <button type="button" onclick="switchView('dashboard')" class="text-xs text-navy-600 hover:text-navy-900 font-semibold flex items-center">
+                            <i class="fa-solid fa-arrow-left mr-1.5"></i> Back to Model Calculator
+                        </button>
+
+                        <div class="flex items-center space-x-3 w-full sm:w-auto">
+                            <button type="button" onclick="resetListingForm()" class="px-4 py-2.5 rounded-lg border border-navy-300 text-xs font-semibold text-navy-700 hover:bg-navy-50 transition w-1/2 sm:w-auto">
+                                Clear Form
+                            </button>
+                            <button type="submit" class="px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition w-1/2 sm:w-auto flex items-center justify-center space-x-1.5">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                <span>Publish Listing</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <!-- Active Published Listings Table/Cards -->
+            <div class="bg-white rounded-xl shadow-sm border border-navy-200 p-5 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-navy-900 text-sm tracking-wide uppercase flex items-center">
+                        <i class="fa-solid fa-building-circle-check text-emerald-600 mr-2"></i> Active Property Listings Database
+                    </h3>
+                    <span class="text-xs font-mono bg-navy-100 text-navy-800 px-2.5 py-0.5 rounded" id="listingCountBadge">2 Active Listings</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="listingsContainer">
+                    <!-- Populated dynamically JS -->
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- VIEW 3: CONTACT & CONSULTATION PAGE                               -->
+        <!-- ================================================================= -->
+        <section id="view-contact" class="view-section space-y-6">
+
+            <!-- Banner -->
+            <div class="bg-gradient-to-r from-navy-900 via-navy-800 to-navy-950 text-white rounded-xl p-6 shadow-md border border-navy-700">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <span class="bg-navy-700/80 text-navy-200 text-xs px-2.5 py-1 rounded-full font-mono">
+                            <i class="fa-solid fa-headset mr-1 text-emerald-400"></i> Advisory &amp; Technical Consultation
+                        </span>
+                        <h2 class="text-2xl font-black mt-2">Get in Touch with ProphetEst Advisors</h2>
+                        <p class="text-xs text-navy-200 mt-1 max-w-xl">
+                            Have questions about our Scikit-Learn linear regression property valuation algorithm, need custom PKL model integration, or want an expert in-person property appraisal?
+                        </p>
+                    </div>
+
+                    <div class="bg-white/10 p-4 rounded-xl border border-white/10 text-xs font-mono space-y-1">
+                        <div><i class="fa-solid fa-phone text-emerald-400 mr-2"></i> (800) 555-PROPHET</div>
+                        <div><i class="fa-solid fa-envelope text-emerald-400 mr-2"></i> valuation-team@prophetest.io</div>
+                        <div><i class="fa-solid fa-clock text-emerald-400 mr-2"></i> Mon-Fri: 8:00 AM - 6:00 PM EST</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agents Directory & Contact Form Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                <!-- Left Column: Contact & Appraisal Booking Form -->
+                <div class="lg:col-span-7 bg-white rounded-xl shadow-sm border border-navy-200 p-6 space-y-5">
+                    <div class="border-b border-navy-100 pb-3 flex justify-between items-center">
+                        <h3 class="font-bold text-navy-900 text-sm tracking-wide uppercase flex items-center">
+                            <i class="fa-solid fa-paper-plane text-navy-600 mr-2"></i> Send Inquiry / Schedule Valuation
+                        </h3>
+                        <span class="text-[11px] text-navy-500">Fast Response (&lt; 2 hours)</span>
+                    </div>
+
+                    <form id="contactForm" onsubmit="handleContactSubmit(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="c_name" class="block text-xs font-bold text-navy-800 mb-1">Full Name *</label>
+                                <input type="text" id="c_name" required placeholder="Jane Doe" class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 focus:bg-white focus:ring-2 focus:ring-navy-500">
+                            </div>
+                            <div>
+                                <label for="c_email" class="block text-xs font-bold text-navy-800 mb-1">Email Address *</label>
+                                <input type="email" id="c_email" required placeholder="jane.doe@example.com" class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 focus:bg-white focus:ring-2 focus:ring-navy-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="c_phone" class="block text-xs font-bold text-navy-800 mb-1">Phone Number</label>
+                                <input type="tel" id="c_phone" placeholder="+1 (555) 019-2834" class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 focus:bg-white focus:ring-2 focus:ring-navy-500">
+                            </div>
+                            <div>
+                                <label for="c_subject" class="block text-xs font-bold text-navy-800 mb-1">Inquiry Category *</label>
+                                <select id="c_subject" required class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 font-medium focus:bg-white focus:ring-2 focus:ring-navy-500">
+                                    <option value="Property Appraisal">Request Professional In-Person Appraisal</option>
+                                    <option value="Model Integration">Custom PKL Model Upload Support</option>
+                                    <option value="Listing Consultation">Property Listing Advisory</option>
+                                    <option value="General Question">General Inquiry</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Link to Specific Property Valuation -->
+                        <div>
+                            <label for="c_linked_property" class="block text-xs font-bold text-navy-800 mb-1">Attach Logged Valuation / Listing Context</label>
+                            <select id="c_linked_property" class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 font-mono focus:bg-white focus:ring-2 focus:ring-navy-500">
+                                <option value="General">-- General / No Specific Property --</option>
+                                <option value="Current Calculator Session" selected>Current Calculator Session ($248,500 Valuation - Ref #1054)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="c_message" class="block text-xs font-bold text-navy-800 mb-1">Detailed Message *</label>
+                            <textarea id="c_message" required rows="4" class="w-full bg-navy-50/50 border border-navy-200 rounded-lg p-2.5 text-xs text-navy-900 focus:bg-white focus:ring-2 focus:ring-navy-500" placeholder="Please describe your property details, timeline, or technical ML questions..."></textarea>
+                        </div>
+
+                        <div class="pt-2 flex justify-end">
+                            <button type="submit" class="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-navy-900 hover:bg-navy-800 text-white text-xs font-bold shadow-md transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                <span>Submit Consultation Request</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Right Column: Dedicated Brokers & Office Info -->
+                <div class="lg:col-span-5 space-y-6">
+
+                    <!-- Agent Card Directory -->
+                    <div class="bg-white rounded-xl shadow-sm border border-navy-200 p-5 space-y-4">
+                        <h3 class="font-bold text-navy-900 text-xs tracking-wide uppercase border-b border-navy-100 pb-2 flex items-center">
+                            <i class="fa-solid fa-user-tie text-navy-600 mr-2"></i> Lead Valuation Consultants
+                        </h3>
+
+                        <div class="space-y-3">
+                            <!-- Agent 1 -->
+                            <div class="p-3 bg-navy-50/60 rounded-lg border border-navy-100 flex items-center space-x-3 hover:border-navy-300 transition">
+                                <div class="w-10 h-10 rounded-full bg-navy-900 text-white flex items-center justify-center font-bold text-sm font-mono shrink-0">
+                                    MS
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex justify-between items-baseline">
+                                        <h4 class="text-xs font-bold text-navy-900 truncate">Marcus Sterling</h4>
+                                        <span class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-medium">Senior Agent</span>
+                                    </div>
+                                    <p class="text-[11px] text-navy-600">Ames Residential Specialist</p>
+                                    <p class="text-[10px] text-navy-500 font-mono mt-0.5"><i class="fa-solid fa-phone mr-1"></i> (555) 234-8901</p>
+                                </div>
+                                <button onclick="selectAgentForContact('Marcus Sterling')" class="text-navy-700 hover:text-navy-900 text-xs font-bold underline shrink-0">Select</button>
+                            </div>
+
+                            <!-- Agent 2 -->
+                            <div class="p-3 bg-navy-50/60 rounded-lg border border-navy-100 flex items-center space-x-3 hover:border-navy-300 transition">
+                                <div class="w-10 h-10 rounded-full bg-emerald-800 text-white flex items-center justify-center font-bold text-sm font-mono shrink-0">
+                                    ER
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex justify-between items-baseline">
+                                        <h4 class="text-xs font-bold text-navy-900 truncate">Elena Rostova, M.Sc.</h4>
+                                        <span class="text-[10px] bg-navy-100 text-navy-800 px-1.5 py-0.5 rounded font-medium">Data Analyst</span>
+                                    </div>
+                                    <p class="text-[11px] text-navy-600">Scikit-Learn ML Engineer</p>
+                                    <p class="text-[10px] text-navy-500 font-mono mt-0.5"><i class="fa-solid fa-phone mr-1"></i> (555) 890-1234</p>
+                                </div>
+                                <button onclick="selectAgentForContact('Elena Rostova')" class="text-navy-700 hover:text-navy-900 text-xs font-bold underline shrink-0">Select</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Office Location / FAQ Card -->
+                    <div class="bg-white rounded-xl shadow-sm border border-navy-200 p-5 space-y-3">
+                        <h3 class="font-bold text-navy-900 text-xs tracking-wide uppercase border-b border-navy-100 pb-2 flex items-center">
+                            <i class="fa-solid fa-location-dot text-navy-600 mr-2"></i> Headquarters &amp; Operations
+                        </h3>
+                        <div class="text-xs text-navy-700 space-y-2">
+                            <p class="font-medium"><i class="fa-solid fa-building text-navy-500 mr-1.5"></i> ProphetEst Analytics Hub</p>
+                            <p class="text-navy-600 pl-5">500 Main Street, Suite 400<br>Ames, IA 50010</p>
+                            <div class="pt-2 border-t border-navy-100 text-[11px] text-navy-500 flex justify-between">
+                                <span><i class="fa-solid fa-circle text-emerald-500 mr-1"></i> Live Chat Support</span>
+                                <span class="font-mono">v1.6.1 PKL Ready</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Model Inspector Modal -->
+    <div id="modelModal" class="fixed inset-0 bg-navy-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl border border-navy-200 w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-navy-900 text-white px-6 py-4 flex justify-between items-center border-b border-navy-800">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-navy-800 p-2 rounded text-emerald-400">
+                        <i class="fa-solid fa-microchip text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base">Scikit-Learn Model File Inspector</h3>
+                        <p class="text-xs text-navy-300 font-mono" id="modalModelFileName">linear_regression_model.pkl</p>
+                    </div>
+                </div>
+                <button onclick="closeModelModal()" class="text-navy-300 hover:text-white text-xl p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-6 text-navy-900">
+                <!-- Metadata table -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
+                    <div class="bg-navy-50 p-3 rounded-lg border border-navy-200">
+                        <div class="text-navy-500 text-[10px]">Model Estimator</div>
+                        <div class="font-bold text-navy-900">LinearRegression</div>
+                    </div>
+                    <div class="bg-navy-50 p-3 rounded-lg border border-navy-200">
+                        <div class="text-navy-500 text-[10px]">Scikit-Learn Version</div>
+                        <div class="font-bold text-navy-900">1.6.1</div>
+                    </div>
+                    <div class="bg-navy-50 p-3 rounded-lg border border-navy-200">
+                        <div class="text-navy-500 text-[10px]">Features Count</div>
+                        <div class="font-bold text-navy-900">5 Features</div>
+                    </div>
+                    <div class="bg-navy-50 p-3 rounded-lg border border-navy-200">
+                        <div class="text-navy-500 text-[10px]">Pickle Protocol</div>
+                        <div class="font-bold text-navy-900">Joblib NumPy</div>
+                    </div>
+                </div>
+
+                <!-- Feature Coefficients Table -->
+                <div>
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-navy-900 mb-2 flex items-center">
+                        <i class="fa-solid fa-table-list mr-1.5 text-navy-600"></i> Feature Names &amp; Coef Values (`coef_`)
+                    </h4>
+                    <div class="border border-navy-200 rounded-lg overflow-hidden">
+                        <table class="w-full text-left text-xs font-mono">
+                            <thead class="bg-navy-900 text-white">
+                                <tr>
+                                    <th class="p-2.5">Feature Name (`feature_names_in_`)</th>
+                                    <th class="p-2.5">Type</th>
+                                    <th class="p-2.5 text-right">Coefficient (`coef_`)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-navy-100 bg-navy-50/50">
+                                <tr>
+                                    <td class="p-2.5 font-bold">Id</td>
+                                    <td class="p-2.5 text-navy-500">float64</td>
+                                    <td class="p-2.5 text-right font-bold text-navy-900" id="m_coef_id">-0.0521</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2.5 font-bold">MSSubClass</td>
+                                    <td class="p-2.5 text-navy-500">float64</td>
+                                    <td class="p-2.5 text-right font-bold text-navy-900" id="m_coef_subclass">-148.50</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2.5 font-bold">LotArea</td>
+                                    <td class="p-2.5 text-navy-500">float64</td>
+                                    <td class="p-2.5 text-right font-bold text-emerald-700" id="m_coef_lotarea">+2.8420</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2.5 font-bold">OverallQual</td>
+                                    <td class="p-2.5 text-navy-500">float64</td>
+                                    <td class="p-2.5 text-right font-bold text-emerald-700" id="m_coef_qual">+24,180.00</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2.5 font-bold">OverallCond</td>
+                                    <td class="p-2.5 text-navy-500">float64</td>
+                                    <td class="p-2.5 text-right font-bold text-emerald-700" id="m_coef_cond">+6,840.00</td>
+                                </tr>
+                                <tr class="bg-navy-100 font-bold">
+                                    <td class="p-2.5">intercept_</td>
+                                    <td class="p-2.5 text-navy-500">scalar float64</td>
+                                    <td class="p-2.5 text-right text-navy-900" id="m_intercept">-$95,241.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Python Execution Snippet -->
+                <div>
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-navy-900 mb-2 flex items-center">
+                        <i class="fa-brands fa-python mr-1.5 text-navy-600"></i> Equivalent Python Inference Code
+                    </h4>
+                    <pre class="bg-navy-950 text-emerald-300 p-4 rounded-lg text-xs font-mono overflow-x-auto leading-relaxed border border-navy-800">
+import joblib
+import numpy as np
+
+# Load the model binary
+model = joblib.load('linear_regression_model.pkl')
+
+# Feature vector: [Id, MSSubClass, LotArea, OverallQual, OverallCond]
+X_new = np.array([[1054, 60, 10550, 7, 5]])
+
+# Predict SalePrice
+predicted_price = model.predict(X_new)[0]
+print(f"Predicted SalePrice: ${predicted_price:,.2f}")</pre>
+                </div>
+            </div>
+
+            <div class="bg-navy-50 px-6 py-3 border-t border-navy-200 flex justify-end">
+                <button onclick="closeModelModal()" class="bg-navy-900 hover:bg-navy-800 text-white font-semibold py-1.5 px-4 rounded text-xs">
+                    Close Inspector
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-navy-900 border-t border-navy-800 text-navy-300 py-4 text-xs mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center sm:flex sm:justify-between sm:text-left">
+            <p>&copy; 2026 ProphetEst Analytics | Real Estate Price Prediction &amp; Property Listing Suite</p>
+            <div class="mt-1 sm:mt-0 flex items-center justify-center sm:justify-end space-x-4">
+                <button onclick="switchView('dashboard')" class="hover:text-white">Dashboard</button>
+                <button onclick="switchView('listing')" class="hover:text-white">Listings</button>
+                <button onclick="switchView('contact')" class="hover:text-white">Contact</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-navy-900 text-white px-4 py-3 rounded-lg shadow-xl border border-navy-600 text-xs font-semibold transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center space-x-2 z-50">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toastMsg">Action completed successfully!</span>
+    </div>
+
+    <script>
+        let activeModel = {
+            name: "linear_regression_model.pkl",
+            className: "LinearRegression",
+            version: "1.6.1",
+            features: ["Id", "MSSubClass", "LotArea", "OverallQual", "OverallCond"],
+            coefs: {
+                Id: -0.0521,
+                MSSubClass: -148.5,
+                LotArea: 2.842,
+                OverallQual: 24180.0,
+                OverallCond: 6840.0
+            },
+            intercept: -95241.0
+        };
+
+        let projectionChart, sensitivityChart, contributionsChart;
+        let loggedScenarios = [];
+        let activeListings = [
+            {
+                id: 1054,
+                title: "Spacious Suburban Residence in North Ames",
+                address: "742 Evergreen Terrace, North Ames",
+                askingPrice: 250000,
+                modelPrice: 248500,
+                lotArea: 10550,
+                qual: 7,
+                cond: 5,
+                beds: 4,
+                baths: 2.5,
+                status: "Active"
+            },
+            {
+                id: 1020,
+                title: "Modern Executive Villa w/ Garden",
+                address: "128 Grand Boulevard, Somerset",
+                askingPrice: 310000,
+                modelPrice: 308200,
+                lotArea: 14200,
+                qual: 8,
+                cond: 6,
+                beds: 5,
+                baths: 3,
+                status: "Featured"
+            }
+        ];
+
+        const AMES_MEDIAN_BASELINE = 180000;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initMobileMenu();
+            updateModelLabels();
+            initCharts();
+            calculatePrice();
+            renderListings();
+
+            // Hash router support
+            const hash = window.location.hash.replace('#', '');
+            if (hash && ['dashboard', 'listing', 'contact'].includes(hash)) {
+                switchView(hash);
+            }
+        });
+
+        // VIEW ROUTER
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
+            const target = document.getElementById(`view-${viewName}`);
+            if (target) {
+                target.classList.add('active-view');
+                window.location.hash = viewName;
+            }
+
+            // Update Nav button active styling
+            ['dashboard', 'listing', 'contact'].forEach(v => {
+                const navBtn = document.getElementById(`nav-${v}`);
+                if (navBtn) {
+                    if (v === viewName) {
+                        navBtn.className = "px-3 py-2 rounded-lg transition flex items-center space-x-1.5 bg-navy-800 text-white border border-navy-700 font-bold";
+                    } else {
+                        navBtn.className = "px-3 py-2 rounded-lg transition flex items-center space-x-1.5 text-navy-200 hover:text-white hover:bg-navy-800/60";
+                    }
+                }
+            });
+
+            // Refresh charts if back on dashboard
+            if (viewName === 'dashboard' && projectionChart) {
+                setTimeout(() => {
+                    projectionChart.resize();
+                    sensitivityChart.resize();
+                    contributionsChart.resize();
+                }, 100);
+            }
+        }
+
+        function initMobileMenu() {
+            const btn = document.getElementById('mobileMenuBtn');
+            const menu = document.getElementById('mobileMenu');
+            if (btn && menu) {
+                btn.addEventListener('click', () => {
+                    menu.classList.toggle('hidden');
+                });
+            }
+        }
+
+        function updateModelLabels() {
+            const c = activeModel.coefs;
+            document.getElementById('coef_id_lbl').innerText = c.Id.toFixed(3);
+            document.getElementById('coef_subclass_lbl').innerText = c.MSSubClass.toFixed(1);
+            document.getElementById('coef_lotarea_lbl').innerText = (c.LotArea >= 0 ? '+' : '') + c.LotArea.toFixed(2) + " / sqft";
+            document.getElementById('coef_qual_lbl').innerText = "+" + c.OverallQual.toLocaleString();
+            document.getElementById('coef_cond_lbl').innerText = "+" + c.OverallCond.toLocaleString();
+            document.getElementById('intercept_lbl').innerText = (activeModel.intercept >= 0 ? '+' : '') + "$" + Math.round(activeModel.intercept).toLocaleString();
+            document.getElementById('interceptVal').innerText = "$" + Math.round(activeModel.intercept).toLocaleString();
+
+            document.getElementById('m_coef_id').innerText = c.Id.toFixed(4);
+            document.getElementById('m_coef_subclass').innerText = c.MSSubClass.toFixed(2);
+            document.getElementById('m_coef_lotarea').innerText = "+" + c.LotArea.toFixed(4);
+            document.getElementById('m_coef_qual').innerText = "+" + c.OverallQual.toLocaleString();
+            document.getElementById('m_coef_cond').innerText = "+" + c.OverallCond.toLocaleString();
+            document.getElementById('m_intercept').innerText = "$" + Math.round(activeModel.intercept).toLocaleString();
+            document.getElementById('modalModelFileName').innerText = activeModel.name;
+            document.getElementById('ribbonModelName').innerText = activeModel.name;
+        }
+
+        function syncInput(targetId, val) {
+            document.getElementById(targetId).value = val;
+            calculatePrice();
+        }
+
+        function calculatePrice() {
+            const idVal = parseFloat(document.getElementById('property_id').value) || 1054;
+            const subClass = parseFloat(document.getElementById('mssubclass_num').value) || 60;
+            const lotArea = parseFloat(document.getElementById('lotarea').value) || 10550;
+            const overallQual = parseFloat(document.getElementById('overallqual').value) || 7;
+            const overallCond = parseFloat(document.getElementById('overallcond').value) || 5;
+
+            const c = activeModel.coefs;
+            
+            const idContrib = c.Id * idVal;
+            const subClassContrib = c.MSSubClass * subClass;
+            const lotAreaContrib = c.LotArea * lotArea;
+            const qualContrib = c.OverallQual * overallQual;
+            const condContrib = c.OverallCond * overallCond;
+
+            let predictedSalePrice = activeModel.intercept + idContrib + subClassContrib + lotAreaContrib + qualContrib + condContrib;
+            predictedSalePrice = Math.max(30000, Math.round(predictedSalePrice));
+
+            // Format formula text
+            const eqDiv = document.getElementById('equationBreakdown');
+            if (eqDiv) {
+                eqDiv.innerHTML = `
+                    SalePrice = ${activeModel.intercept.toLocaleString(undefined, {maximumFractionDigits:0})} 
+                    + (${c.Id.toFixed(2)} × ${idVal}) 
+                    + (${c.MSSubClass.toFixed(1)} × ${subClass}) 
+                    + (${c.LotArea.toFixed(2)} × ${lotArea.toLocaleString()}) 
+                    + (${c.OverallQual.toLocaleString()} × ${overallQual}) 
+                    + (${c.OverallCond.toLocaleString()} × ${overallCond})
+                    <br>= <span class="text-white font-mono font-black text-sm">$${predictedSalePrice.toLocaleString()} USD</span>
+                `;
+            }
+
+            const pricePerSqFt = (predictedSalePrice / lotArea).toFixed(2);
+            const qualityIndex = ((overallQual * 0.7) + (overallCond * 0.3)).toFixed(1);
+
+            const formattedPrice = "$" + predictedSalePrice.toLocaleString();
+            document.getElementById('salePriceVal').innerText = formattedPrice;
+            document.getElementById('pricePerSqFtVal').innerText = `$${pricePerSqFt} / sqft`;
+            document.getElementById('qualityScoreVal').innerText = `${qualityIndex} / 10`;
+            document.getElementById('listingModelPriceDisplay').innerText = formattedPrice;
+
+            // Benchmark text
+            const diffFromMedian = (((predictedSalePrice - AMES_MEDIAN_BASELINE) / AMES_MEDIAN_BASELINE) * 100).toFixed(1);
+            const benchmarkEl = document.getElementById('marketBenchmark');
+            if (diffFromMedian >= 0) {
+                benchmarkEl.innerHTML = `<i class="fa-solid fa-arrow-up-right-dots mr-1 text-emerald-400"></i> +${diffFromMedian}% above Ames median`;
+            } else {
+                benchmarkEl.innerHTML = `<i class="fa-solid fa-arrow-down-right-dots mr-1 text-navy-300"></i> ${Math.abs(diffFromMedian)}% below Ames median`;
+            }
+
+            updateCharts(predictedSalePrice, idContrib, subClassContrib, lotAreaContrib, qualContrib, condContrib);
+            checkPriceVariance();
+        }
+
+        function initCharts() {
+            Chart.defaults.color = '#054b85';
+            Chart.defaults.font.family = 'ui-sans-serif, system-ui, -apple-system, sans-serif';
+
+            const ctxProjection = document.getElementById('projectionChart').getContext('2d');
+            projectionChart = new Chart(ctxProjection, {
+                type: 'line',
+                data: {
+                    labels: ['Current Year', 'Year +1', 'Year +2', 'Year +3', 'Year +4', 'Year +5'],
+                    datasets: [{
+                        label: 'Predicted Valuation ($)',
+                        data: [],
+                        borderColor: '#006ec7',
+                        backgroundColor: 'rgba(0, 110, 199, 0.12)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.35,
+                        pointBackgroundColor: '#072849',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (ctx) => `Valuation: $${ctx.parsed.y.toLocaleString()}` } }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(186, 224, 253, 0.4)' } },
+                        y: { 
+                            grid: { color: 'rgba(186, 224, 253, 0.4)' },
+                            ticks: { callback: (val) => '$' + (val / 1000).toFixed(0) + 'k' }
+                        }
+                    }
+                }
+            });
+
+            const ctxSensitivity = document.getElementById('sensitivityChart').getContext('2d');
+            sensitivityChart = new Chart(ctxSensitivity, {
+                type: 'radar',
+                data: {
+                    labels: ['OverallQual', 'LotArea', 'OverallCond', 'MSSubClass', 'Id Ref'],
+                    datasets: [{
+                        label: 'Coefficient Elasticity Scale',
+                        data: [95, 70, 55, 40, 10],
+                        backgroundColor: 'rgba(0, 110, 199, 0.25)',
+                        borderColor: '#006ec7',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(186, 224, 253, 0.6)' },
+                            grid: { color: 'rgba(186, 224, 253, 0.6)' },
+                            ticks: { display: false, max: 100 }
+                        }
+                    }
+                }
+            });
+
+            const ctxContributions = document.getElementById('contributionsChart').getContext('2d');
+            contributionsChart = new Chart(ctxContributions, {
+                type: 'bar',
+                data: {
+                    labels: ['OverallQual', 'LotArea', 'OverallCond', 'MSSubClass'],
+                    datasets: [{
+                        label: 'Value Impact ($)',
+                        data: [0, 0, 0, 0],
+                        backgroundColor: ['#0058a3', '#006ec7', '#36a9f7', '#0a3f6f'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (ctx) => `Value Impact: $${ctx.parsed.y.toLocaleString()}` } }
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { 
+                            grid: { color: 'rgba(186, 224, 253, 0.4)' },
+                            ticks: { callback: (val) => '$' + (val / 1000).toFixed(0) + 'k' } 
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts(predictedPrice, idContrib, subContrib, areaContrib, qualContrib, condContrib) {
+            if (!projectionChart) return;
+
+            const projectionData = [];
+            const annualGrowth = 0.038;
+            for (let i = 0; i <= 5; i++) {
+                projectionData.push(Math.round(predictedPrice * Math.pow(1 + annualGrowth, i)));
+            }
+
+            projectionChart.data.datasets[0].data = projectionData;
+            projectionChart.update();
+
+            contributionsChart.data.datasets[0].data = [
+                Math.round(qualContrib),
+                Math.round(areaContrib),
+                Math.round(condContrib),
+                Math.round(Math.abs(subContrib))
+            ];
+            contributionsChart.update();
+        }
+
+        function transferToListingForm() {
+            // Transfer current slider values directly to listing form inputs
+            const idVal = document.getElementById('property_id').value;
+            const subClass = document.getElementById('mssubclass_num').value;
+            const lotArea = document.getElementById('lotarea').value;
+            const qual = document.getElementById('overallqual').value;
+            const cond = document.getElementById('overallcond').value;
+            const modelPriceRaw = document.getElementById('salePriceVal').innerText.replace('$', '').replace(/,/g, '');
+
+            document.getElementById('list_id').value = idVal;
+            document.getElementById('list_mssubclass').value = subClass;
+            document.getElementById('list_lotarea').value = lotArea;
+            document.getElementById('list_overallqual').value = qual;
+            document.getElementById('list_overallcond').value = cond;
+            document.getElementById('list_asking_price').value = modelPriceRaw;
+
+            switchView('listing');
+            checkPriceVariance();
+            showToast("Transferred calculated ML valuation into Listing Form!");
+        }
+
+        function syncListingToModel(targetId, val) {
+            if (document.getElementById(targetId)) {
+                document.getElementById(targetId).value = val;
+                if (targetId === 'mssubclass_num') {
+                    document.getElementById('mssubclass').value = val;
+                }
+                calculatePrice();
+            }
+        }
+
+        function checkPriceVariance() {
+            const asking = parseFloat(document.getElementById('list_asking_price').value) || 0;
+            const modelText = document.getElementById('salePriceVal').innerText.replace('$', '').replace(/,/g, '');
+            const modelVal = parseFloat(modelText) || asking;
+
+            const badge = document.getElementById('priceVarianceBadge');
+            if (!badge) return;
+
+            if (modelVal === 0) return;
+
+            const diff = asking - modelVal;
+            const diffPct = ((diff / modelVal) * 100).toFixed(1);
+
+            if (Math.abs(diffPct) <= 2) {
+                badge.className = "bg-emerald-50 border border-emerald-200 text-emerald-800 p-2 rounded-lg text-[11px] font-medium flex items-center justify-between";
+                badge.innerHTML = `<span>Vs. Model:</span><strong class="font-mono text-xs">+${diffPct}% (Optimal Match)</strong>`;
+            } else if (diff > 0) {
+                badge.className = "bg-amber-50 border border-amber-200 text-amber-800 p-2 rounded-lg text-[11px] font-medium flex items-center justify-between";
+                badge.innerHTML = `<span>Vs. Model:</span><strong class="font-mono text-xs">+${diffPct}% Above Benchmark</strong>`;
+            } else {
+                badge.className = "bg-navy-50 border border-navy-200 text-navy-800 p-2 rounded-lg text-[11px] font-medium flex items-center justify-between";
+                badge.innerHTML = `<span>Vs. Model:</span><strong class="font-mono text-xs">${diffPct}% Below Benchmark</strong>`;
+            }
+        }
+
+        function handleListingSubmit(e) {
+            e.preventDefault();
+
+            const newListing = {
+                id: parseInt(document.getElementById('list_id').value) || Math.floor(Math.random()*9000)+1000,
+                title: document.getElementById('list_title').value,
+                address: document.getElementById('list_address').value,
+                askingPrice: parseFloat(document.getElementById('list_asking_price').value),
+                modelPrice: parseFloat(document.getElementById('salePriceVal').innerText.replace('$', '').replace(/,/g, '')),
+                lotArea: parseInt(document.getElementById('list_lotarea').value),
+                qual: parseInt(document.getElementById('list_overallqual').value),
+                cond: parseInt(document.getElementById('list_overallcond').value),
+                beds: parseInt(document.getElementById('list_beds').value) || 3,
+                baths: parseFloat(document.getElementById('list_baths').value) || 2,
+                status: document.getElementById('list_status').value
+            };
+
+            activeListings.unshift(newListing);
+            renderListings();
+            showToast(`Property "${newListing.title}" published!`);
+
+            // Update contact dropdown context
+            updateContactDropdown(newListing);
+        }
+
+        function renderListings() {
+            const container = document.getElementById('listingsContainer');
+            const badge = document.getElementById('listingCountBadge');
+            if (badge) badge.innerText = `${activeListings.length} Active Listings`;
+
+            if (!container) return;
+
+            container.innerHTML = activeListings.map(item => `
+                <div class="border border-navy-200 rounded-xl p-4 bg-navy-50/30 hover:border-navy-400 transition flex flex-col justify-between space-y-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[10px] bg-navy-900 text-white font-mono px-2 py-0.5 rounded">Ref #${item.id}</span>
+                            <h4 class="font-bold text-sm text-navy-900 mt-1">${item.title}</h4>
+                            <p class="text-xs text-navy-600"><i class="fa-solid fa-location-dot text-navy-400 mr-1"></i>${item.address}</p>
+                        </div>
+                        <span class="text-xs font-bold px-2.5 py-1 rounded-full ${item.status === 'Featured' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
+                            ${item.status}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 bg-white p-2.5 rounded-lg border border-navy-100 text-xs font-mono">
+                        <div>
+                            <span class="text-[10px] text-navy-500 block">Asking Price</span>
+                            <strong class="text-navy-900">$${item.askingPrice.toLocaleString()}</strong>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-navy-500 block">ML Benchmark</span>
+                            <strong class="text-emerald-700">$${item.modelPrice.toLocaleString()}</strong>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center text-xs text-navy-600 pt-1 border-t border-navy-100">
+                        <span><i class="fa-solid fa-bed mr-1"></i>${item.beds} bed | <i class="fa-solid fa-bath mr-1"></i>${item.baths} bath | ${item.lotArea.toLocaleString()} sqft</span>
+                        <button onclick="inquireAboutProperty('${item.title}', ${item.askingPrice})" class="text-navy-800 font-bold hover:underline flex items-center">
+                            Inquire <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function resetListingForm() {
+            document.getElementById('propertyListingForm').reset();
+            showToast("Listing form cleared");
+        }
+
+        function inquireAboutProperty(title, price) {
+            switchView('contact');
+            document.getElementById('c_subject').value = "Listing Consultation";
+            document.getElementById('c_message').value = `Hello, I am interested in inquiring about property listing: "${title}" listed at $${price.toLocaleString()}. Please schedule an appraisal consultation.`;
+            showToast("Switched to Contact Page with listing context!");
+        }
+
+        function selectAgentForContact(agentName) {
+            document.getElementById('c_message').value = `Attn: ${agentName}\n\nI would like to consult regarding my property valuation and market analysis.`;
+            showToast(`Assigned consultation request to ${agentName}`);
+        }
+
+        function updateContactDropdown(newListing) {
+            const select = document.getElementById('c_linked_property');
+            if (select) {
+                const opt = document.createElement('option');
+                opt.value = `Ref #${newListing.id} - ${newListing.title}`;
+                opt.text = `Ref #${newListing.id} - ${newListing.title} ($${newListing.askingPrice.toLocaleString()})`;
+                opt.selected = true;
+                select.add(opt);
+            }
+        }
+
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('c_name').value;
+            const ticketId = 'TICK-' + Math.floor(Math.random()*89999 + 10000);
+            
+            showToast(`Inquiry #${ticketId} submitted for ${name}!`);
+            document.getElementById('contactForm').reset();
+        }
+
+        function logScenario() {
+            const idVal = document.getElementById('property_id').value || '1054';
+            const subClass = document.getElementById('mssubclass_num').value;
+            const area = parseInt(document.getElementById('lotarea').value).toLocaleString();
+            const qual = document.getElementById('overallqual').value;
+            const cond = document.getElementById('overallcond').value;
+            const price = document.getElementById('salePriceVal').innerText;
+
+            loggedScenarios.unshift({ idVal, subClass, area, qual, cond, price });
+            if (loggedScenarios.length > 5) loggedScenarios.pop();
+
+            renderScenariosTable();
+            showToast(`Valuation logged using linear_regression_model.pkl!`);
+        }
+
+        function renderScenariosTable() {
+            const tbody = document.getElementById('scenarioTableBody');
+            if (loggedScenarios.length === 0) {
+                tbody.innerHTML = `
+                    <tr class="text-navy-400 italic text-[11px]">
+                        <td colspan="5" class="py-3 text-center">No saved valuations yet. Click "Log Valuation" above.</td>
+                    </tr>`;
+                return;
+            }
+
+            tbody.innerHTML = loggedScenarios.map(s => `
+                <tr class="hover:bg-navy-50/80 transition">
+                    <td class="py-2 font-bold">${s.idVal}</td>
+                    <td class="py-2">Class ${s.subClass}</td>
+                    <td class="py-2">${s.area} sqft</td>
+                    <td class="py-2">${s.qual} / ${s.cond}</td>
+                    <td class="py-2 text-right font-bold text-navy-800">${s.price}</td>
+                </tr>
+            `).join('');
+        }
+
+        function clearScenarios() {
+            loggedScenarios = [];
+            renderScenariosTable();
+            showToast("Logged valuations cleared");
+        }
+
+        function triggerFileSelect() {
+            document.getElementById('pklFileInput').click();
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            activeModel.name = file.name;
+            updateModelLabels();
+            showToast(`Loaded model binary: ${file.name}`);
+            openModelModal();
+        }
+
+        function openModelModal() {
+            document.getElementById('modelModal').classList.remove('hidden');
+        }
+
+        function closeModelModal() {
+            document.getElementById('modelModal').classList.add('hidden');
+        }
+
+        function exportValuationReport() {
+            const idVal = document.getElementById('property_id').value || '1054';
+            const subClass = document.getElementById('mssubclass_num').value;
+            const lotArea = document.getElementById('lotarea').value;
+            const overallQual = document.getElementById('overallqual').value;
+            const overallCond = document.getElementById('overallcond').value;
+            const salePrice = document.getElementById('salePriceVal').innerText.replace('$', '').replace(/,/g, '');
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Feature_Name,Input_Value,Model_Coefficient,Unit_Description\n";
+            csvContent += `Id,${idVal},${activeModel.coefs.Id},Property Reference Code\n`;
+            csvContent += `MSSubClass,${subClass},${activeModel.coefs.MSSubClass},Building Class Code\n`;
+            csvContent += `LotArea,${lotArea},${activeModel.coefs.LotArea},Square Feet\n`;
+            csvContent += `OverallQual,${overallQual},${activeModel.coefs.OverallQual},Rating (1-10)\n`;
+            csvContent += `OverallCond,${overallCond},${activeModel.coefs.OverallCond},Rating (1-10)\n`;
+            csvContent += `Intercept,-,${activeModel.intercept},Model Intercept\n`;
+            csvContent += `Predicted_SalePrice,${salePrice},-,Predicted USD Currency\n`;
+            csvContent += `Model_File,${activeModel.name},LinearRegression,Scikit-Learn v1.6.1\n`;
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Valuation_Report_Ref_${idVal}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast("Property valuation CSV report exported!");
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
